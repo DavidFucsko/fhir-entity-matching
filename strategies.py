@@ -1,24 +1,9 @@
-"""
-Splitting strategies for dividing patient encounters between two hospitals.
-
-Each strategy receives:
-- encounters: list of encounter IDs (e.g., ["Encounter/123", "Encounter/456"])
-- patient_id: the patient resource ID
-- resources_map: dictionary of all resources
-- rng: optional random.Random() instance for reproducibility
-
-And returns:
-- (encounters_a, encounters_b): two sets of encounter IDs
-"""
-
 import random
 
 
 def temporal_split(encounters, patient_id, resources_map, rng=None):
-    """
-    Split encounters by temporal order (chronological).
-    First half goes to hospital_A, second half to hospital_B.
-    """
+    # Split encounters by temporal order (chronological).
+    # First half goes to hospital_A, second half to hospital_B.
     if len(encounters) <= 1:
         return set(encounters), set()
     
@@ -39,10 +24,8 @@ def temporal_split(encounters, patient_id, resources_map, rng=None):
 
 
 def service_type_split(encounters, patient_id, resources_map, rng=None):
-    """
-    Split encounters by service type (e.g., TRAUMA, SURGERY, MEDICAL).
-    Encounters with different service types are partitioned alphabetically.
-    """
+    # Split encounters by service type (e.g., TRAUMA, SURGERY, MEDICAL).
+    # Encounters with different service types are partitioned alphabetically.
     services = {}
     for encounter_id in encounters:
         encounter = resources_map["Encounter"][encounter_id]
@@ -65,10 +48,8 @@ def service_type_split(encounters, patient_id, resources_map, rng=None):
 
 
 def location_split(encounters, patient_id, resources_map, rng=None):
-    """
-    Split encounters by location.
-    Encounters at different locations are partitioned.
-    """
+    # Split encounters by location.
+    # Encounters at different locations are partitioned.
     encounter_locations = {}
     for encounter_id in encounters:
         encounter = resources_map["Encounter"][encounter_id]
@@ -95,10 +76,8 @@ def location_split(encounters, patient_id, resources_map, rng=None):
 
 
 def random_split(encounters, patient_id, resources_map, rng=None):
-    """
-    Randomly split encounters between two hospitals.
-    Useful for benchmarking; not recommended for real training.
-    """
+    # Randomly split encounters between two hospitals.
+    # Useful for benchmarking; not recommended for real training.
     rng = rng or random.Random()
     encounters_list = list(encounters)
     
@@ -113,12 +92,11 @@ def random_split(encounters, patient_id, resources_map, rng=None):
 
 
 def mixed_split(encounters, patient_id, resources_map, rng=None):
-    """
-    Randomly choose between temporal, service_type, and location splits.
-    - 50% temporal
-    - 25% service_type
-    - 25% location
-    """
+    # Randomly choose between temporal, service_type, and location splits.
+    # - 50% temporal
+    # - 25% service_type
+    # - 25% location
+    # Since service type is too sparse, we will use 70% temporal and 30% location for now.
     rng = rng or random.Random()
     r = rng.random()
     
