@@ -80,3 +80,34 @@ def build_fhir_graphs(fhir_path=None):
     print(f"Total resources: {sum(len(v) for v in resources_map.values())}")
     
     return forward_graph, reverse_graph, resources_map
+
+
+def build_bundle_graph(bundle_dir):
+    bundle_dir = Path(bundle_dir)
+    forward_graph = defaultdict(set)
+    reverse_graph = defaultdict(set)
+    resources_map = {}
+    
+    for bundle_file in bundle_dir.glob("*.json"):
+        with open(bundle_file, 'r', encoding='utf-8') as f:
+            bundle = json.load(f)
+        
+        # Process all entries in the bundle
+        for entry in bundle.get("entry", []):
+            resource = entry.get("resource", {})
+            resource_type = resource.get("resourceType")
+            resource_id = resource.get("id")
+            
+            if not resource_type or not resource_id:
+                continue
+            
+            full_id = f"{resource_type}/{resource_id}"
+            resources_map[full_id] = resource
+            
+            # Find all references from this resource
+            references = find_references(resource)
+            for ref in references:
+                forward_graph[full_id].add(ref)
+                reverse_graph[ref].add(full_id)
+    
+    return forward_graph, reverse_graph, resources_map
