@@ -60,19 +60,19 @@ def extract_patient_record(patient_id, resources_map, reverse_graph):
     medications_text = " and ".join(medications) if medications else ""
     
     # Extract observations
-    observations = []
-    for resource_id in related_resources:
-        resource = resources_map.get(resource_id, {})
-        if resource.get("resourceType") == "Observation":
-            display = resource.get("code", {}).get("coding", [{}])[0].get("display", "")
-            value = resource.get("valueQuantity", {}).get("value", "")
-            unit = resource.get("valueQuantity", {}).get("unit", "")
-            issued = resource.get("issued", "")
+    # observations = []
+    # for resource_id in related_resources:
+    #     resource = resources_map.get(resource_id, {})
+    #     if resource.get("resourceType") == "Observation":
+    #         display = resource.get("code", {}).get("coding", [{}])[0].get("display", "")
+    #         value = resource.get("valueQuantity", {}).get("value", "")
+    #         unit = resource.get("valueQuantity", {}).get("unit", "")
+    #         issued = resource.get("issued", "")
             
-            if display and (value or unit):
-                observations.append(f"{display} is {value} {unit} on {issued}".strip())
+    #         if display and (value or unit):
+    #             observations.append(f"{display} is {value} {unit} on {issued}".strip())
     
-    observations_text = " and ".join(observations) if observations else ""
+    # observations_text = " and ".join(observations) if observations else ""
     
     return {
         "name": name,
@@ -80,7 +80,7 @@ def extract_patient_record(patient_id, resources_map, reverse_graph):
         "deceased": deceased,
         "conditions": conditions_text,
         "medications": medications_text,
-        "observations": observations_text
+        #"observations": observations_text
     }
 
 
