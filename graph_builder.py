@@ -111,3 +111,44 @@ def build_bundle_graph(bundle_dir):
                 reverse_graph[ref].add(full_id)
     
     return forward_graph, reverse_graph, resources_map
+
+
+def build_split_bundle_graphs(base_bundle_dir, splits=['train', 'validation', 'test'], 
+                               locations=['hospital_A', 'hospital_B']):
+    """
+    Build graphs from split bundle directory structure.
+    
+    Args:
+        base_bundle_dir: Base directory containing train/validation/test subdirectories
+        splits: List of split names (default: ['train', 'validation', 'test'])
+        locations: List of location names (default: ['hospital_A', 'hospital_B'])
+    
+    Returns:
+        Dictionary with split and location keys, each containing (forward_graph, reverse_graph, resources_map)
+    """
+    base_dir = Path(base_bundle_dir)
+    results = {}
+    
+    for split in splits:
+        results[split] = {}
+        split_dir = base_dir / split
+        
+        if not split_dir.exists():
+            print(f"Warning: {split_dir} does not exist")
+            continue
+        
+        for location in locations:
+            location_dir = split_dir / location
+            
+            if not location_dir.exists():
+                print(f"Note: {location_dir} does not exist (may be empty for this split)")
+                results[split][location] = (defaultdict(set), defaultdict(set), {})
+                continue
+            
+            print(f"Building graph for {split}/{location}...")
+            forward_graph, reverse_graph, resources_map = build_bundle_graph(location_dir)
+            results[split][location] = (forward_graph, reverse_graph, resources_map)
+            
+            print(f"  Resources: {sum(len(v) for v in resources_map.values())}")
+    
+    return results

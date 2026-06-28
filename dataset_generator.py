@@ -120,18 +120,19 @@ def generate_matching_dataset(hospital_a_dir, hospital_b_dir, output_file):
     
     print(f"Generated {positive_count} positive examples")
     
-    print("Generating all negative examples...")
+    print("Generating negative examples...")
     negative_count = 0
-    for i, patient_a1 in enumerate(patients_a):
-        for patient_a2 in patients_a[i+1:]:  # Avoid duplicates and self-pairs
-            record_a1 = extract_patient_record(patient_a1, resources_a, reverse_a)
-            record_a2 = extract_patient_record(patient_a2, resources_a, reverse_a)
-            
-            formatted_a1 = format_record(record_a1)
-            formatted_a2 = format_record(record_a2)
-            
-            dataset_lines.append(f"{formatted_a1}\t\t{formatted_a2}\t\t0")
-            negative_count += 1
+    for patient_b in patients_b:
+        record_b = extract_patient_record(patient_b, resources_b, reverse_b)
+        formatted_b = format_record(record_b)
+        
+        for patient_a in patients_a:
+            if patient_a != patient_b:  # Skip the real match
+                record_a = extract_patient_record(patient_a, resources_a, reverse_a)
+                formatted_a = format_record(record_a)
+                
+                dataset_lines.append(f"{formatted_a}\t\t{formatted_b}\t\t0")
+                negative_count += 1
     
     print(f"Generated {negative_count} negative examples")
     

@@ -29,11 +29,11 @@ def mutate_patients(bundle_location):
         
         mutations = []
         if df["name"].iloc[0]:
-            mutations.append(("name", [(0.7, grouped_mutator)]))
+            mutations.append(("name", [(1, grouped_mutator)]))
         if df["birth_date"].iloc[0]:
-            mutations.append(("birth_date", [(0.7, grouped_mutator)]))
+            mutations.append(("birth_date", [(1, grouped_mutator)]))
         if df["deceased_date"].iloc[0]:
-            mutations.append(("deceased_date", [(0.7, grouped_mutator)]))
+            mutations.append(("deceased_date", [(1, grouped_mutator)]))
         
         if mutations:
             df_mutated = mutator.mutate_data_frame(df, mutations)

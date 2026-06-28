@@ -1,4 +1,51 @@
 import random
+from pathlib import Path
+
+
+def split_patients_by_set(patient_ids, train_ratio=0.6, val_ratio=0.2, seed=None):
+    """
+    Split patients into train, validation, and test sets.
+    
+    Args:
+        patient_ids: List of patient IDs to split
+        train_ratio: Proportion for training set (default 0.6)
+        val_ratio: Proportion for validation set (default 0.2)
+        seed: Random seed for reproducibility
+    
+    Returns:
+        Dictionary with 'train', 'validation', 'test' keys containing patient IDs
+    """
+    rng = random.Random(seed)
+    patient_list = list(patient_ids)
+    rng.shuffle(patient_list)
+    
+    total = len(patient_list)
+    train_count = int(total * train_ratio)
+    val_count = int(total * val_ratio)
+    
+    return {
+        'train': set(patient_list[:train_count]),
+        'validation': set(patient_list[train_count:train_count + val_count]),
+        'test': set(patient_list[train_count + val_count:])
+    }
+
+
+def get_output_dir_for_split(base_dir, split_set, location_name=None):
+    """
+    Get the output directory for a specific split and location.
+    
+    Args:
+        base_dir: Base output directory (e.g., 'location')
+        split_set: Split set name ('train', 'validation', 'test')
+        location_name: Optional location name (e.g., 'hospital_A', 'hospital_B')
+    
+    Returns:
+        Path object for the output directory
+    """
+    if location_name:
+        return Path(base_dir) / split_set / location_name
+    else:
+        return Path(base_dir) / split_set
 
 
 def build_patient_bundle(patient_id, reverse_graph, forward_graph, resources_map):
@@ -90,3 +137,45 @@ def build_split_dataset(strategy, resources_map, reverse_graph, forward_graph, s
             patient_bundles_b[patient_id] = build_bundle_structure(hospital_b_resources, resources_map)
     
     return patient_bundles_a, patient_bundles_b
+
+
+def build_split_dataset_with_sets(strategy, resources_map, reverse_graph, forward_graph, 
+                                   train_ratio=0.6, val_ratio=0.2, seed=None):
+    # Split patients into sets
+    all_patient_ids = list(resources_map['Patient'].keys())
+    patient_sets = split_patients_by_set(all_patient_ids, train_ratio, val_ratio, seed)
+    
+    # Build results structure
+    results = {
+        'train': {'hospital_a': {}, 'hospital_b': {}},
+        'validation': {'hospital_a': {}, 'hospital_b': {}},
+        'test': {'hospital_a': {}, 'hospital_b': {}}
+    }
+    
+    # Process each split
+    for split_name, patient_ids_in_split in patient_sets.items():
+        # Filter resources for this split
+        filtered_resources = {}
+        for resource_type, resources in resources_map.items():
+            filtered_resources[resource_type] = {}
+            if resource_type == 'Patient':
+                for patient_id, resource in resources.items():
+                    if patient_id in patient_ids_in_split:
+                        filtered_resources[resource_type][patient_id] = resource
+            else:
+                filtered_resources[resource_type] = resources
+        
+        # Build split dataset for this set
+        bundles_a, bundles_b = build_split_dataset(
+            strategy, 
+            filtered_resources, 
+            reverse_graph, 
+            forward_graph, 
+            seed
+        )
+        
+        # Organize by hospital location
+        results[split_name]['hospital_a'] = bundles_a
+        results[split_name]['hospital_b'] = bundles_b
+    
+    return results
